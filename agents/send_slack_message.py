@@ -1,6 +1,11 @@
+from dotenv import load_dotenv
+import os
 import requests
-from diagnose_machine_failure import diagnose_machine_failure
-from retraining_message import notify_retraining_start, notify_retraining_completed
+from agents.diagnose_machine_failure import diagnose_machine_failure
+from agents.retraining_message import notify_retraining_start, notify_retraining_completed
+
+# .env 파일 로드
+load_dotenv()
 
 def send_slack_message(option_type, input):
     """
@@ -29,9 +34,9 @@ def send_slack_message(option_type, input):
     
     else:
         message = {"text": "알 수 없는 메시지 유형입니다."}
-    
-    web_hook_url = "https://hooks.slack.com/services/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"
-    
-    requests.post(web_hook_url, json=message)
+
+    WEB_HOOK_URL = os.getenv("WEB_HOOK_URL")
+
+    requests.post(WEB_HOOK_URL, json=message)
     
     return result

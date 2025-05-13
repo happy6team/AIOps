@@ -35,7 +35,6 @@ def predict_and_result(dataset) -> (bool, float):
     "collection_time": dataset.iloc[9]
     }
 
-
     # 시계열 컬럼 처리
     X = pd.DataFrame([data])
 

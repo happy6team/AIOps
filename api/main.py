@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 from api.routers import sensor_data
 
-# 애플리케이션 시작 시 환경 변수 로드 및 그래프 초기화
+# 애플리케이션 시작 시 환경 변수 로드
 load_dotenv()
 
 app = FastAPI(

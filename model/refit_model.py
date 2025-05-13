@@ -70,8 +70,35 @@ def evaluate(dataset) -> float:
 
 # 모델 재학습
 def retrain(dataset) -> float:
-    model = load_model(MODEL_PATH)
+    model = load_model(MODEL_PATH)    
+    if not dataset:
+        raise ValueError("입력된 dataset이 비어 있습니다.")
 
+    # ORM 객체 → dict 리스트 (정식 방식)
+    dict_list = [
+        {column.name: getattr(obj, column.name) for column in obj.__table__.columns}
+        for obj in dataset
+    ]
+
+    # DataFrame으로 변환
+    dataset = pd.DataFrame(dict_list)
+
+    # 컬럼명 변경 (예: temp_mode → tempMode, temperature → Temperature)
+    dataset.rename(columns={
+        "temp_mode": "tempMode",
+        "temperature": "Temperature"
+    }, inplace=True)
+
+    # 불필요한 컬럼 삭제
+    drop_cols = ["id", "fail_probability"]
+    dataset.drop(columns=[col for col in drop_cols if col in df.columns], inplace=True)
+
+    # 컬럼 순서 재정렬 (선택사항)
+    dataset = dataset[[
+        "footfall", "tempMode", "AQ", "USS", "CS", "VOC",
+        "RP", "IP", "Temperature", "collection_time","fail"
+    ]]
+    
     # 시간 처리
     dataset["collection_time"] = pd.to_datetime(dataset["collection_time"])
     dataset = dataset.sort_values(by="collection_time")

@@ -9,8 +9,9 @@ from model.refit_model import evaluate, retrain
 from config.config import DATA_SOURCE_PATH  # 데이터 소스 경로 설정 필요
 
 from config.db_config import AsyncSessionLocal
-from cruds.sensordata import create_sensor_data
+from cruds.sensordata import create_sensor_data, get_all_sensor_data
 from api.schemas.sensor_data import SensorDataCreate
+from agents.send_slack_message import send_slack_message
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
@@ -28,11 +29,16 @@ async def predict_failures(latest_data):
         prediction_result, fail_probability = predict_and_result(latest_data) # ex) 예측 결과 확률
         
         # @ 여기 retrun값이 어떻게 오냐에 따라 값 다르게 넣어주기
+        # 예측 결과 저장
+        result = await save_row(latest_data, prediction_result, fail_probability)
+        print("😺데이터 저장이")
+        print(result)
+        
         # 2. 예측 결과 처리 (임계값 이상이면 경고 발생)
         if prediction_result == 1:  # 임계값 설정 필요
             logger.warning(f"고장 가능성 감지! 고장 확률: {fail_probability}")
             # 여기에 알림 전송 로직 추가 (이메일, SMS, 웹훅 등)
-            return
+            send_slack_message("failure", result)
         logger.info(f"예측 완료: {prediction_result}")
         return prediction_result, fail_probability
     except Exception as e:
@@ -62,11 +68,28 @@ async def evaluate_and_retrain():
         
         # 성능 임계값 체크
         if accuracy < PERFORMANCE_THRESHOLD:
+            slack_before_data = {
+                "before_acc": accuracy,
+                "threshold": PERFORMANCE_THRESHOLD
+            }
+            send_slack_message("retraining_start", slack_before_data)
+            print("✅슬랙 메시지 전송 완료")
             logger.warning(f"모델 성능 저하 감지. 재학습 시작...")
-            
+
+            # DB 세션 열기 및 저장
+            async with AsyncSessionLocal() as session:
+                new_database = await get_all_sensor_data(session)
+
             # 모델 재학습
-            retrain_result = retrain(database)
+            retrain_result = retrain(new_database)
             logger.info(f"모델 재학습 완료: {retrain_result}")
+            slack_data = {
+                "before_acc": accuracy,
+                "after_acc":retrain_result,
+                "threshold": PERFORMANCE_THRESHOLD
+            }
+            send_slack_message("retraining_done", slack_data)
+            print("😺슬랙 메시지 전송 완료")
         else:
             logger.info("모델 성능 양호. 재학습 불필요")
     except Exception as e:
@@ -117,7 +140,6 @@ async def predict_each_row_periodically(database: pd.DataFrame, interval_seconds
         while True:
             for index, row in database.iterrows():
                 prediction_result, fail_probability = await predict_failures(row)  # 각 행 예측
-                await save_row(row, prediction_result, fail_probability)
                 await asyncio.sleep(interval_seconds)  # 5초 대기 후 다음 행
     except Exception as e:
         logging.error(f"예측 루프 중 오류 발생: {e}")
