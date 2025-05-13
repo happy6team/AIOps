@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
-from api.routers import file
+from api.routers import sensor_data
 
 # 애플리케이션 시작 시 환경 변수 로드 및 그래프 초기화
 load_dotenv()
@@ -23,7 +23,7 @@ app.add_middleware(
 async def welcome():
     return {"message": "Welcome to the FastAPI server!"}
 
-app.include_router(file.router)
+app.include_router(sensor_data.router)
 
 if __name__ == "__main__":
     import uvicorn
