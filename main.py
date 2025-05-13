@@ -1,26 +1,34 @@
 # main.py
-from fastapi import FastAPI, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from config.db_config import get_db
-from api.schemas.sensor_data import SensorDataCreate
-from cruds.sensordata import create_sensor_data
+from fastapi import FastAPI
 
 import asyncio
-from monitor.scheduler import predict_failures, evaluate_and_retrain, periodic_task
+from monitor.scheduler import predict_each_row_periodically, evaluate_and_retrain, periodic_task
+from config.config import GNERATE_DATA_SOURCE_PATH
+import pandas as pd
+
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-@app.post("/sensor-data", summary="센서 데이터 저장")
-async def post_sensor_data(data: SensorDataCreate, db: AsyncSession = Depends(get_db)):
-    saved = await create_sensor_data(db, data)
-    return {
-        "message": "✅ 센서 데이터가 저장되었습니다.",
-        "collection_time": saved.collection_time,
-        "fail": saved.fail,
-        "fail_probability": saved.fail_probability
-    }
-
 @app.on_event("startup")
 async def startup():
-    asyncio.create_task(periodic_task(predict_failures(), 5)) # 5초 마다 
-    asyncio.create_task(periodic_task(evaluate_and_retrain(), 86400)) # 24시간 마다
+    try:
+        # 데이터 로드
+        database = pd.read_csv(GNERATE_DATA_SOURCE_PATH)
+
+        if database.empty:
+            print("데이터가 없습니다.")
+            return
+
+        # 각 행을 5초 간격으로 순차 예측
+        asyncio.create_task(predict_each_row_periodically(database, 5))
+
+        # 24시간마다 평가 및 재학습
+        # asyncio.create_task(periodic_task(evaluate_and_retrain, 86400))
+        asyncio.create_task(periodic_task(evaluate_and_retrain, 20)) # 20초마다 결과 확인
+
+    except Exception as e:
+        print(f"시작 이벤트 중 오류 발생: {e}")
