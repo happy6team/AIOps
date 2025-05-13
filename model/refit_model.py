@@ -1,3 +1,7 @@
+# refit_model.py
+# 기존 모델 재학습 평가 및 정확도 반환
+# 24시간 주기로 실행
+
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
