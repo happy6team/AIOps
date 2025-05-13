@@ -1,9 +1,6 @@
 import time
 import schedule
 import pandas as pd
-from model import weight_used_model
-# import model
-import os
 import logging
 from config import DATA_SOURCE_PATH  # 데이터 소스 경로 설정 필요
 
@@ -12,14 +9,18 @@ logging.info(f"데이터 경로 확인: {DATA_SOURCE_PATH}")
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+PERFORMANCE_THRESHOLD = 0.9
+
+logger.info(f"데이터 경로 확인: {DATA_SOURCE_PATH}")
+
 # 새로운 데이터 5초마다 불러와서 학습하기
 def predict_failures():
     try:
         # 1. 최신 데이터 불러오기
-        latest_data = pd.read_csv(DATA_SOURCE_PATH) # 여기는 새로운 데이터 로드해주는 함수로 변경 예정
+        latest_data = pd.read_csv(GNERATE_DATA_SOURCE_PATH) # 여기는 새로운 데이터 로드해주는 함수로 변경 예정
         
         # 2. 모델로 예측 실행
-        prediction_result = weight_used_model.process(latest_data) # ex) 예측 결과 확률
+        prediction_result, fail_probability = predict_and_result(latest_data) # ex) 예측 결과 확률
         
         # @ 여기 retrun값이 어떻게 오냐에 따라 값 다르게 넣어주기
         # 3. 예측 결과 처리 (임계값 이상이면 경고 발생)
@@ -40,9 +41,10 @@ def evaluate_and_retrain():
         logger.info("모델 성능 평가 시작")
         
         # 데이터 불러오기
+        database = pd.read_csv(DATA_SOURCE_PATH)
 
         # 모델 성능 평가
-        performance_metrics = weight_used_model.process(eval_data) # 데이터 불러오기
+        performance_metrics = train_and_evaluate(database) # 데이터 불러오기
         logger.info(f"모델 성능 지표: {performance_metrics}")
         
         # 성능 임계값 체크
@@ -60,6 +62,13 @@ def evaluate_and_retrain():
 # 매일 자정에 모델 평가 및 재학습 실행
 schedule.every().day.at("00:00").do(evaluate_and_retrain)
 
+async def periodic_task(task_func, interval_seconds):
+    while True:
+        try:
+            await task_func()
+        except Exception as e:
+            logging.exception(f"periodic_task: 예외 발생 - {e}")
+        await asyncio.sleep(interval_seconds)
 
 # 메인 루프
 if __name__ == "__main__":
