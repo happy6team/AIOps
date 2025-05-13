@@ -8,6 +8,10 @@ from model.refit_model import evaluate, retrain
 
 from config.config import DATA_SOURCE_PATH  # 데이터 소스 경로 설정 필요
 
+from config.db_config import AsyncSessionLocal
+from cruds.sensordata import create_sensor_data
+from api.schemas.sensor_data import SensorDataCreate
+
 # 로깅 설정
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -28,8 +32,10 @@ async def predict_failures(latest_data):
             logger.warning(f"고장 가능성 감지! 고장 확률: {fail_probability}")
             # 여기에 알림 전송 로직 추가 (이메일, SMS, 웹훅 등)
         logger.info(f"예측 완료: {prediction_result}")
+        return prediction_result, fail_probability
     except Exception as e:
         logger.error(f"예측 중 오류 발생: {str(e)}")
+    
 
 # # 5초마다 실행
 # schedule.every(5).seconds.do(predict_failures)
@@ -79,11 +85,37 @@ async def periodic_task(task_func, interval_seconds):
             logging.exception(f"periodic_task: 예외 발생 - {e}")
         await asyncio.sleep(interval_seconds)
 
+# 데이터 저장 함수
+async def save_row(row,prediction_result, fail_probability):
+    # row → dict
+    row_dict = row.to_dict()
+
+        # 키 수동 수정
+    if 'tempMode' in row_dict:
+        row_dict['temp_mode'] = row_dict.pop('tempMode')
+    if 'Temperature' in row_dict:
+        row_dict['temperature'] = row_dict.pop('Temperature')
+    
+    # NaN → None 변환
+    row_dict = {k: None if pd.isna(v) else v for k, v in row_dict.items()}
+
+    # 강제로 fail과 fail_probability 지정
+    row_dict['fail'] = prediction_result 
+    row_dict['fail_probability'] = fail_probability
+
+    # 모델 생성
+    sensor_data = SensorDataCreate(**row_dict)
+    # DB 세션 열기 및 저장
+    async with AsyncSessionLocal() as session:
+        await create_sensor_data(session, sensor_data)
+        print("새로운 데이터 저장 완료")
+
 async def predict_each_row_periodically(database: pd.DataFrame, interval_seconds: int):
     try:
         while True:
             for index, row in database.iterrows():
-                await predict_failures(row)  # 각 행 예측
+                prediction_result, fail_probability = await predict_failures(row)  # 각 행 예측
+                await save_row(row, prediction_result, fail_probability)
                 await asyncio.sleep(interval_seconds)  # 5초 대기 후 다음 행
     except Exception as e:
         logging.error(f"예측 루프 중 오류 발생: {e}")

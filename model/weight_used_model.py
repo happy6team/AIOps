@@ -32,8 +32,7 @@ def predict_and_result(dataset) -> (bool, float):
     "RP": dataset.iloc[6],
     "IP": dataset.iloc[7],
     "Temperature": dataset.iloc[8],
-    "fail": dataset.iloc[9],
-    "collection_time": dataset.iloc[10]
+    "collection_time": dataset.iloc[9]
     }
 
 
@@ -53,9 +52,6 @@ def predict_and_result(dataset) -> (bool, float):
     
     # 시계열 컬럼 제거
     X = X.drop(columns=["collection_time"])
-    
-    # 'fail' 컬럼을 제외한 데이터로 예측
-    X = X.drop(columns=["fail"])
 
     # 스케일링
     scaler = joblib.load(SCALER_PATH)
