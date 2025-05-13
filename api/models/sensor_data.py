@@ -14,4 +14,4 @@ class SensorData(Base):
     IP = Column(Float)                                    # 입력 압력
     temperature = Column(Float)                           # 작동 온도
     fail = Column(Boolean)                                # 고장 여부 (0: 정상, 1: 고장)
-    fail_probability = Column(Float)                    # 고장 확률 (0~1)
+    fail_probability = Column(Float)                      # 고장 확률 (0~1)

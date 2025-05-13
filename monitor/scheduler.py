@@ -4,6 +4,9 @@ import pandas as pd
 from model.weight_used_model import predict_and_result
 from model.refit_model import train_and_evaluate
 import model
+from model import weight_used_model
+# import model
+import os
 import logging
 from config import DATA_SOURCE_PATH  # 데이터 소스 경로 설정 필요
 
