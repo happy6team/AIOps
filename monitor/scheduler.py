@@ -7,6 +7,7 @@ import os
 import logging
 from config import DATA_SOURCE_PATH  # 데이터 소스 경로 설정 필요
 
+logging.info(f"데이터 경로 확인: {DATA_SOURCE_PATH}")
 # 로깅 설정
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 logger = logging.getLogger(__name__)
