@@ -14,4 +14,5 @@ async def create_sensor_data(db: AsyncSession, data: SensorDataCreate):
     new_entry = SensorData(**data.dict())
     db.add(new_entry)
     await db.commit()
-    await db.refresh(new_entry)
+    return new_entry
+    # await db.refresh(new_entry)
