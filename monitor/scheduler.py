@@ -30,7 +30,6 @@ async def predict_failures(latest_data):
         # @ 여기 retrun값이 어떻게 오냐에 따라 값 다르게 넣어주기
         # 예측 결과 저장
         result = await save_row(latest_data, prediction_result, fail_probability)
-        print("😺데이터 저장이")
         print(result)
         
         # 2. 예측 결과 처리 (임계값 이상이면 경고 발생)
@@ -42,6 +41,8 @@ async def predict_failures(latest_data):
         return prediction_result, fail_probability
     except Exception as e:
         logger.error(f"예측 중 오류 발생: {str(e)}")
+        return None, None  # 예외 시 명시적으로 반환
+
     
 
 # # 5초마다 실행
@@ -88,7 +89,6 @@ async def evaluate_and_retrain():
                 "threshold": PERFORMANCE_THRESHOLD
             }
             send_slack_message("retraining_done", slack_data)
-            print("😺슬랙 메시지 전송 완료")
         else:
             logger.info("모델 성능 양호. 재학습 불필요")
     except Exception as e:
@@ -133,6 +133,7 @@ async def save_row(row,prediction_result, fail_probability):
     async with AsyncSessionLocal() as session:
         await create_sensor_data(session, sensor_data)
         print("새로운 데이터 저장 완료")
+    return row_dict
 
 async def predict_each_row_periodically(database: pd.DataFrame, interval_seconds: int):
     try:
