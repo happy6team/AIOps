@@ -3,7 +3,7 @@ from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
 # from sqlalchemy import select
-from schemas.sensor_data import SensorDataCreate
+from api.schemas.sensor_data import SensorDataCreate
 
 # 새로운 센서 데이터 추가
 async def create_sensor_data(db: AsyncSession, data: SensorDataCreate):
