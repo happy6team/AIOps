@@ -23,6 +23,7 @@ logger.info(f"데이터 경로 확인: {DATA_SOURCE_PATH}")
 # 새로운 데이터 5초마다 불러와서 학습하기
 async def predict_failures(latest_data):
     try:
+        message = "failure"
         # 1. 모델로 예측 실행
         prediction_result, fail_probability = predict_and_result(latest_data) # ex) 예측 결과 확률
         
@@ -31,6 +32,7 @@ async def predict_failures(latest_data):
         if prediction_result == 1:  # 임계값 설정 필요
             logger.warning(f"고장 가능성 감지! 고장 확률: {fail_probability}")
             # 여기에 알림 전송 로직 추가 (이메일, SMS, 웹훅 등)
+            return
         logger.info(f"예측 완료: {prediction_result}")
         return prediction_result, fail_probability
     except Exception as e:
@@ -61,7 +63,7 @@ async def evaluate_and_retrain():
         # 성능 임계값 체크
         if accuracy < PERFORMANCE_THRESHOLD:
             logger.warning(f"모델 성능 저하 감지. 재학습 시작...")
-
+            
             # 모델 재학습
             retrain_result = retrain(database)
             logger.info(f"모델 재학습 완료: {retrain_result}")
