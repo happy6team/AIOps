@@ -1,8 +1,8 @@
 import time
 import schedule
 import pandas as pd
-import weight_used_model
-import model
+from model import weight_used_model
+# import model
 import os
 import logging
 from config import DATA_SOURCE_PATH  # 데이터 소스 경로 설정 필요
