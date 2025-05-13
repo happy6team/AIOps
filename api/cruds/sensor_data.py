@@ -1,5 +1,4 @@
 from api.models.sensor_data import SensorData
-<<<<<<< HEAD
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime

@@ -5,10 +5,11 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
 import joblib
 import os
+from config.config import DATA_SOURCE_PATH
 
 # 경로 설정
 MODEL_PATH = "saved_model.joblib"
-DATA_PATH = "data.csv"
+# DATA_PATH = "data.csv"
 SCALER_PATH = "scaler.joblib"
 
 # 모델 로드
@@ -68,7 +69,7 @@ def train_and_evaluate(dataset):
     return acc
 
 # 데이터 로드
-df = pd.read_csv(DATA_PATH)
+df = pd.read_csv(DATA_SOURCE_PATH)
 
 # 시간 처리
 df["collection_time"] = pd.to_datetime(df["collection_time"])

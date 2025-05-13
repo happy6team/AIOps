@@ -5,9 +5,9 @@ from model import weight_used_model
 # import model
 import os
 import logging
-from config import DATA_SOURCE_PATH  # 데이터 소스 경로 설정 필요
+from config.config import GNERATE_DATA_SOURCE_PATH  # 데이터 소스 경로 설정 필요
 
-logging.info(f"데이터 경로 확인: {DATA_SOURCE_PATH}")
+logging.info(f"데이터 경로 확인: {GNERATE_DATA_SOURCE_PATH}")
 # 로깅 설정
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 def predict_failures():
     try:
         # 1. 최신 데이터 불러오기
-        latest_data = pd.read_csv(DATA_SOURCE_PATH) # 여기는 새로운 데이터 로드해주는 함수로 변경 예정
+        latest_data = pd.read_csv(GNERATE_DATA_SOURCE_PATH) # 여기는 새로운 데이터 로드해주는 함수로 변경 예정
         
         # 2. 모델로 예측 실행
         prediction_result = weight_used_model.process(latest_data) # ex) 예측 결과 확률
