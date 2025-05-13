@@ -6,7 +6,7 @@ import joblib
 import pandas as pd
 from datetime import datetime, timedelta
 
-from .refit_model import load_model
+from model.refit_model import load_model
 
 # 경로 설정
 MODEL_PATH = "model/result/saved_model.joblib"
