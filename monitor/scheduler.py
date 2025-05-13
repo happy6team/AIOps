@@ -9,7 +9,7 @@ from model.refit_model import evaluate, retrain
 from config.config import DATA_SOURCE_PATH  # 데이터 소스 경로 설정 필요
 
 from config.db_config import AsyncSessionLocal
-from cruds.sensordata import create_sensor_data
+from cruds.sensordata import create_sensor_data, get_all_sensor_data
 from api.schemas.sensor_data import SensorDataCreate
 from agents.send_slack_message import send_slack_message
 
@@ -75,8 +75,12 @@ async def evaluate_and_retrain():
             print("✅슬랙 메시지 전송 완료")
             logger.warning(f"모델 성능 저하 감지. 재학습 시작...")
 
+            # DB 세션 열기 및 저장
+            async with AsyncSessionLocal() as session:
+                new_database = await get_all_sensor_data(session)
+
             # 모델 재학습
-            retrain_result = retrain(database)
+            retrain_result = retrain(new_database)
             logger.info(f"모델 재학습 완료: {retrain_result}")
             slack_data = {
                 "before_acc": accuracy,
