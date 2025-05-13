@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, Float, Boolean, DateTime
-from api.config.db_config import Base
+from config.db_config import Base
 
 class SensorData(Base):
     __tablename__ = "sensor_data"
