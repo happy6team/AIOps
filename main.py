@@ -3,14 +3,16 @@ from fastapi import FastAPI
 
 import asyncio
 from monitor.scheduler import predict_each_row_periodically, evaluate_and_retrain, periodic_task
-from config.config import GNERATE_DATA_SOURCE_PATH
+from config.config import GNERATE_DATA_SOURCE_PATH, DATA_SOURCE_PATH
 import pandas as pd
 
 import logging
 
+from config.db_config import async_engine
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 from api.routers import sensor_data
+from loader.init_data_loader import load_csv_to_db, init_db
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -40,6 +42,12 @@ app.include_router(sensor_data.router)
 @app.on_event("startup")
 async def startup():
     try:
+        # 테이블 생성
+        await init_db(async_engine)
+
+        # 초기 데이터 자동 생성
+        await load_csv_to_db(DATA_SOURCE_PATH)
+        
         # 데이터 로드
         database = pd.read_csv(GNERATE_DATA_SOURCE_PATH)
 
