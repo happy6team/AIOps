@@ -3,6 +3,7 @@ venv/
 .venv/
 env/
 miniProject/
+aiops-machine/ 
 
 # pycache, 컴파일된 파일
 __pycache__/
