@@ -26,7 +26,10 @@ SKALA 1기 AIOps 미니 프로젝트 이상치 예측형 모델 관리 Fast API 
    pip install -r requirements.txt
    ```
 
-5. 프로젝트 실행
+5. .env 파일 만들기  
+   .env.example 파일 참고해서 만드시면 됩니다.
+   
+6. 프로젝트 실행
    ```
    uvicorn api.main:app --reload  
    ```
