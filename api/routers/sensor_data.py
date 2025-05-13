@@ -5,8 +5,8 @@ from config.db_config import get_db
 from api.cruds import sensor_data as cruds
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
-from schemas.sensor_data import SensorDataCreate
-from crud.sensor_data import create_sensor_data
+from api.schemas.sensor_data import SensorDataCreate
+from api.cruds.sensor_data import create_sensor_data
 
 # 예시 코드 입니다. import가 안되어 있을지도
 router = APIRouter(
