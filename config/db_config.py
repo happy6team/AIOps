@@ -17,7 +17,8 @@ DB_PORT = os.getenv("DB_PORT", "3306")
 DB_NAME = os.getenv("DB_NAME")
 
 # ✅ MySQL 비동기 데이터베이스 URL
-ASYNC_DB_URL = ASYNC_DB_URL = "mysql+aiomysql://{}:{}@{}:{}/{}?charset=utf8mb4".format(DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME)
+ASYNC_DB_URL = ASYNC_DB_URL = f"mysql+aiomysql://{}:{}@{}:{}/{}?charset=utf8mb4".format(DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME)
+
 
 # ✅ 비동기 데이터베이스 엔진 생성
 async_engine = create_async_engine(ASYNC_DB_URL, echo=True)
