@@ -8,21 +8,43 @@ from datetime import datetime, timedelta
 
 from model.refit_model import load_model
 
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+logger = logging.getLogger(__name__)
+
 # 경로 설정
 MODEL_PATH = "model/result/saved_model.joblib"
 SCALER_PATH = "model/result/scaler.joblib"
 
 # 모델 예측 및 결과
-def predict_and_result(dataset):
+def predict_and_result(dataset) -> (bool, float):
     # 모델 로드
     model = load_model(MODEL_PATH)
 
-    # 시계열 컬럼 제거
-    X = dataset.copy()
+    data = {
+    "footfall": dataset.iloc[0],
+    "tempMode": dataset.iloc[1],
+    "AQ": dataset.iloc[2],
+    "USS": dataset.iloc[3],
+    "CS": dataset.iloc[4],
+    "VOC": dataset.iloc[5],
+    "RP": dataset.iloc[6],
+    "IP": dataset.iloc[7],
+    "Temperature": dataset.iloc[8],
+    "fail": dataset.iloc[9],
+    "collection_time": dataset.iloc[10]
+    }
 
-    # 시간 처리
-    X["collection_time"] = pd.to_datetime(X["collection_time"])
-    X = X.sort_values("collection_time")
+
+    # 시계열 컬럼 처리
+    X = pd.DataFrame([data])
+
+    # 'collection_time'을 datetime 형식으로 변환
+    X['collection_time'] = pd.to_datetime(X['collection_time'])
+
+    # 'collection_time' 기준으로 데이터 정렬
+    X = X.sort_values(by="collection_time")
 
     # 컬럼 변환 (필요한 특성만 사용)
     X["hour"] = X["collection_time"].dt.hour
@@ -31,6 +53,9 @@ def predict_and_result(dataset):
     
     # 시계열 컬럼 제거
     X = X.drop(columns=["collection_time"])
+    
+    # 'fail' 컬럼을 제외한 데이터로 예측
+    X = X.drop(columns=["fail"])
 
     # 스케일링
     scaler = joblib.load(SCALER_PATH)
@@ -46,4 +71,4 @@ def predict_and_result(dataset):
     print(f'고장 발생 확률: {probability[0]:.4f}')
     print(f'예측된 클래스 (0: 고장 없음, 1: 고장 발생): {y_pred[0]}')
 
-    return y_pred, probability  # 예측 결과, 고장 발생 확률 반환
+    return y_pred[0], probability[0]  # 예측 결과, 고장 발생 확률 반환

@@ -1,19 +1,34 @@
-import pandas as pd
+# main.py
+from fastapi import FastAPI
+
+import asyncio
+from monitor.scheduler import predict_each_row_periodically, evaluate_and_retrain, periodic_task
 from config.config import GNERATE_DATA_SOURCE_PATH
-from cruds.sensordata import create_sensor_data
-from api.schemas.sensor_data import SensorDataCreate  # Pydantic 모델
 import pandas as pd
-import numpy as np
 
-generate_df = pd.read_csv(GNERATE_DATA_SOURCE_PATH)
+import logging
 
-generate_df.rename(columns={
-    "tempMode": "temp_mode",
-    "Temperature": "temperature"}, inplace=True)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+logger = logging.getLogger(__name__)
 
-# 누락된 컬럼 채우기
-if 'fail_probability' not in generate_df.columns:
-    generate_df['fail_probability'] = np.nan
+app = FastAPI()
 
-for idx, row in generate_df.iterrows():
-    print(row)
+@app.on_event("startup")
+async def startup():
+    try:
+        # 데이터 로드
+        database = pd.read_csv(GNERATE_DATA_SOURCE_PATH)
+
+        if database.empty:
+            print("데이터가 없습니다.")
+            return
+
+        # 각 행을 5초 간격으로 순차 예측
+        asyncio.create_task(predict_each_row_periodically(database, 5))
+
+        # 24시간마다 평가 및 재학습
+        # asyncio.create_task(periodic_task(evaluate_and_retrain, 86400))
+        asyncio.create_task(periodic_task(evaluate_and_retrain, 20)) # 20초마다 결과 확인
+
+    except Exception as e:
+        print(f"시작 이벤트 중 오류 발생: {e}")

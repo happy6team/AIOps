@@ -12,9 +12,8 @@ import os
 from config.config import DATA_SOURCE_PATH
 
 # 경로 설정
-MODEL_PATH = "saved_model.joblib"
-# DATA_PATH = "data.csv"
-SCALER_PATH = "scaler.joblib"
+MODEL_PATH = "model/result/saved_model.joblib"
+SCALER_PATH = "model/result/scaler.joblib"
 
 # 모델 로드
 def load_model(path=MODEL_PATH):
@@ -28,13 +27,54 @@ def save_model(model, path=MODEL_PATH):
     joblib.dump(model, path)
     print(f"모델이 저장되었습니다: {path}")
 
-# 모델 재학습 및 평가
-def train_and_evaluate(dataset):
+# 모델 평가
+def evaluate(dataset) -> float:
     model = load_model(MODEL_PATH)
 
     # 시간 처리
     dataset["collection_time"] = pd.to_datetime(dataset["collection_time"])
-    dataset = dataset.sort_values("collection_time")
+    dataset = dataset.sort_values(by="collection_time")
+
+    # 컬럼 변환 (필요한 특성만 사용)
+    dataset["hour"] = dataset["collection_time"].dt.hour
+    dataset["dayofweek"] = dataset["collection_time"].dt.dayofweek
+    dataset["is_weekend"] = (dataset["dayofweek"] >= 5).astype(int)
+
+    # 시계열 컬럼 제거
+    dataset = dataset.drop(columns=["collection_time"])
+
+    # 전처리
+    n_dataset_test = len(dataset) // 8
+    dataset_test = dataset.iloc[-n_dataset_test:]
+    dataset_train_val = dataset.iloc[:-n_dataset_test]
+
+    X_train_val = dataset_train_val.drop(columns=["fail"])
+    y_train_val = dataset_train_val["fail"]
+
+    # 테스트 데이터 준비
+    X_test = dataset_test.drop(columns=["fail"])
+    y_test = dataset_test["fail"]
+
+    # 스케일링
+    scaler = joblib.load(SCALER_PATH)
+    X_train_val_scaled = scaler.fit_transform(X_train_val)
+    X_test_scaled = scaler.transform(X_test)
+
+    # 모델 예측 및 평가
+    y_pred = model.predict(X_test_scaled)
+    acc = accuracy_score(y_test, y_pred)
+    print(f"현재 모델 정확도: {acc:.4f}")
+    print(classification_report(y_test, y_pred))
+
+    return acc
+
+# 모델 재학습
+def retrain(dataset) -> float:
+    model = load_model(MODEL_PATH)
+
+    # 시간 처리
+    dataset["collection_time"] = pd.to_datetime(dataset["collection_time"])
+    dataset = dataset.sort_values(by="collection_time")
 
     # 컬럼 변환 (필요한 특성만 사용)
     dataset["hour"] = dataset["collection_time"].dt.hour
@@ -77,7 +117,7 @@ df = pd.read_csv(DATA_SOURCE_PATH)
 
 # 시간 처리
 df["collection_time"] = pd.to_datetime(df["collection_time"])
-df = df.sort_values("collection_time")
+df = df.sort_values(by="collection_time")
 
 # 컬럼 변환 (필요한 특성만 사용)
 df["hour"] = df["collection_time"].dt.hour
