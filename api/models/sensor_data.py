@@ -3,7 +3,8 @@ from config.db_config import Base
 
 class SensorData(Base):
     __tablename__ = "sensor_data"
-    collection_time = Column(DateTime, primary_key=True)  # 센서 데이터 수집 시간 (PK)
+    id = Column(Integer, primary_key=True)
+    collection_time = Column(DateTime)  # 센서 데이터 수집 시간 (PK)
     footfall = Column(Integer)                            # 지나가는 사람 수
     temp_mode = Column(Integer)                           # 온도 모드
     AQ = Column(Float)                                    # 공기질 지수

@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncAttrs
 load_dotenv()
 
 # 환경 변수에서 DB 비밀번호 가져오기
-DB_PASSWORD = os.getenv("DB_PASSWORD", "0223")  # 기본값은 빈 문자열
+DB_PASSWORD = os.getenv("DB_PASSWORD", "")  # 기본값은 빈 문자열
 DB_USER = os.getenv("DB_USER", "root")
 DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
 DB_PORT = os.getenv("DB_PORT", "3306")
