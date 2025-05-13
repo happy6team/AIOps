@@ -1,7 +1,7 @@
 from api.models.sensor_data import SensorData
 # from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from schemas.sensor_data import SensorDataCreate
+from api.schemas.sensor_data import SensorDataCreate
 
 # limit 기준으로 센서 데이터 불러오기 
 async def get_all_sensor_data(db: AsyncSession, limit: int):
@@ -15,4 +15,3 @@ async def create_sensor_data(db: AsyncSession, data: SensorDataCreate):
     db.add(new_entry)
     await db.commit()
     await db.refresh(new_entry)
-    return new_entry
