@@ -22,5 +22,5 @@ async def post_sensor_data(data: SensorDataCreate, db: AsyncSession = Depends(ge
 
 @app.on_event("startup")
 async def startup():
-    asyncio.create_task(periodic_task(predict_failures(), 5))
-    asyncio.create_task(periodic_task(evaluate_and_retrain(), 86400))
+    asyncio.create_task(periodic_task(predict_failures(), 5)) # 5초 마다 
+    asyncio.create_task(periodic_task(evaluate_and_retrain(), 86400)) # 24시간 마다
