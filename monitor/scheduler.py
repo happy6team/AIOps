@@ -1,9 +1,9 @@
 import time
 import schedule
 import pandas as pd
-import weight_used_model
+from model.weight_used_model import predict_and_result
+from model.refit_model import train_and_evaluate
 import model
-import os
 import logging
 from config import DATA_SOURCE_PATH  # 데이터 소스 경로 설정 필요
 
@@ -19,7 +19,7 @@ def predict_failures():
         latest_data = pd.read_csv(DATA_SOURCE_PATH) # 여기는 새로운 데이터 로드해주는 함수로 변경 예정
         
         # 2. 모델로 예측 실행
-        prediction_result = weight_used_model.process(latest_data) # ex) 예측 결과 확률
+        prediction_result, fail_probability = predict_and_result.process(latest_data) # ex) 예측 결과 확률
         
         # @ 여기 retrun값이 어떻게 오냐에 따라 값 다르게 넣어주기
         # 3. 예측 결과 처리 (임계값 이상이면 경고 발생)
@@ -40,9 +40,10 @@ def evaluate_and_retrain():
         logger.info("모델 성능 평가 시작")
         
         # 데이터 불러오기
+        database = pd.read_csv(DATA_SOURCE_PATH)
 
         # 모델 성능 평가
-        performance_metrics = weight_used_model.process(eval_data) # 데이터 불러오기
+        performance_metrics = train_and_evaluate.process(database) # 데이터 불러오기
         logger.info(f"모델 성능 지표: {performance_metrics}")
         
         # 성능 임계값 체크
