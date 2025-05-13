@@ -72,6 +72,10 @@ def evaluate(dataset) -> float:
 def retrain(dataset) -> float:
     model = load_model(MODEL_PATH)
 
+    # fail_probabiliy 컬럼 삭제
+    if 'fail_probability' in dataset.columns:
+        dataset = dataset.drop(columns=['fail_probability'])
+    
     # 시간 처리
     dataset["collection_time"] = pd.to_datetime(dataset["collection_time"])
     dataset = dataset.sort_values(by="collection_time")
