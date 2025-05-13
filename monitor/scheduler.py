@@ -24,14 +24,12 @@ logger.info(f"데이터 경로 확인: {DATA_SOURCE_PATH}")
 # 새로운 데이터 5초마다 불러와서 학습하기
 async def predict_failures(latest_data):
     try:
-        message = "failure"
         # 1. 모델로 예측 실행
         prediction_result, fail_probability = predict_and_result(latest_data) # ex) 예측 결과 확률
         
         # @ 여기 retrun값이 어떻게 오냐에 따라 값 다르게 넣어주기
         # 예측 결과 저장
         result = await save_row(latest_data, prediction_result, fail_probability)
-        print("😺데이터 저장이")
         print(result)
         
         # 2. 예측 결과 처리 (임계값 이상이면 경고 발생)
@@ -43,6 +41,8 @@ async def predict_failures(latest_data):
         return prediction_result, fail_probability
     except Exception as e:
         logger.error(f"예측 중 오류 발생: {str(e)}")
+        return None, None  # 예외 시 명시적으로 반환
+
     
 
 # # 5초마다 실행
@@ -89,7 +89,6 @@ async def evaluate_and_retrain():
                 "threshold": PERFORMANCE_THRESHOLD
             }
             send_slack_message("retraining_done", slack_data)
-            print("😺슬랙 메시지 전송 완료")
         else:
             logger.info("모델 성능 양호. 재학습 불필요")
     except Exception as e:
@@ -134,6 +133,7 @@ async def save_row(row,prediction_result, fail_probability):
     async with AsyncSessionLocal() as session:
         await create_sensor_data(session, sensor_data)
         print("새로운 데이터 저장 완료")
+    return row_dict
 
 async def predict_each_row_periodically(database: pd.DataFrame, interval_seconds: int):
     try:
