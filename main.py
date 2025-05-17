@@ -55,12 +55,15 @@ async def startup():
             print("데이터가 없습니다.")
             return
 
-        # 각 행을 5초 간격으로 순차 예측
+        # 각 행을 5초 간격으로 순차 예측 
+        # -> 실제 상황에서는 10분에 한 번씩 (10분~1시간) :
         asyncio.create_task(predict_each_row_periodically(database, 5))
 
         # 24시간마다 평가 및 재학습
         # asyncio.create_task(periodic_task(evaluate_and_retrain, 86400))
-        asyncio.create_task(periodic_task(evaluate_and_retrain, 20)) # 20초마다 결과 확인
+        # 20초마다 결과 확인
+        # -> 실제 상황에서는 하루 한 번씩(ex. 자정)
+        asyncio.create_task(periodic_task(evaluate_and_retrain, 20)) 
 
     except Exception as e:
         print(f"시작 이벤트 중 오류 발생: {e}")
