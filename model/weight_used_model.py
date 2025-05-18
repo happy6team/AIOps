@@ -34,10 +34,14 @@ def predict_and_result(dataset) -> (bool, float):
     }
 
     X = pd.DataFrame([data])
+
+    # 'collection_time'을 datetime 형식으로 변환
     X['collection_time'] = pd.to_datetime(X['collection_time'])
+
+     # 'collection_time' 기준으로 데이터 정렬
     X = X.sort_values(by="collection_time")
 
-    # 시간 정보 컬럼 추가
+    # 컬럼 변환 (필요한 특성만 사용)
     X["hour"] = X["collection_time"].dt.hour
     X["dayofweek"] = X["collection_time"].dt.dayofweek
     X["is_weekend"] = (X["dayofweek"] >= 5).astype(int)
@@ -51,11 +55,11 @@ def predict_and_result(dataset) -> (bool, float):
     # 확률 예측
     probability = model.predict_proba(X_scaled)[:, 1]
 
-    # 사용자 정의 threshold 적용
-    threshold = 0.7
-    y_pred = (probability >= threshold).astype(int)
+    # 모델 예측
+    y_pred = model.predict(X_scaled)
 
-    print(f'고장 발생 확률: {probability[0]:.4f}')
+    # print(f'고장 발생 확률: {probability[0]:.4f}')
+    print(f'고장 발생 확률 (Recall 기준): {probability[0]:.4f}')
     print(f'예측된 클래스 (0: 고장 없음, 1: 고장 발생): {y_pred[0]}')
 
-    return y_pred[0], probability[0]
+    return y_pred[0], probability[0]  # 예측 결과, 고장 발생 확률 반환
