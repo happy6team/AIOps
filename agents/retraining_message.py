@@ -23,7 +23,8 @@ def notify_retraining_start(before_acc: float, threshold: float) -> Dict[str, An
     message = f"🔄 모델 재학습 시작 알림\n\n"
     message += f"현재 시간: {current_time}\n\n"
     message += f"현재 모델 성능이 임계치보다 낮아 재학습을 시작합니다.\n"
-    message += f"• 현재 정확도: {before_acc_percent:.2f}%\n"
+    # message += f"• 현재 정확도: {before_acc_percent:.2f}%\n"
+    message += f"• 현재 재현율(recall): {before_acc_percent:.2f}%\n"  # 변경된 코드
     message += f"• 요구 임계치: {threshold_percent:.2f}%\n\n"
     message += f"재학습이 완료되면 추가 알림이 전송됩니다."
     
@@ -64,8 +65,10 @@ def notify_retraining_completed(before_acc: float, after_acc: float, threshold: 
     message = f"✅ 모델 재학습 완료 알림\n\n"
     message += f"현재 시간: {current_time}\n\n"
     message += f"모델 재학습이 완료되었습니다.\n"
-    message += f"• 이전 정확도: {before_acc_percent:.2f}%\n"
-    message += f"• 새 정확도: {after_acc_percent:.2f}% ({improvement_message})\n"
+    # message += f"• 이전 정확도: {before_acc_percent:.2f}%\n"
+    # message += f"• 새 정확도: {after_acc_percent:.2f}% ({improvement_message})\n"
+    message += f"• 이전 재현율(recall): {before_acc_percent:.2f}%\n"  # 변경된 코드
+    message += f"• 새 재현율(recall): {after_acc_percent:.2f}% ({improvement_message})\n"  # 변경된 코드
     message += f"• 요구 임계치: {threshold_percent:.2f}%\n\n"
     
     if is_deployed:

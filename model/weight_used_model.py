@@ -63,7 +63,8 @@ def predict_and_result(dataset) -> (bool, float):
     y_pred = model.predict(X_scaled)
 
     # 출력
-    print(f'고장 발생 확률: {probability[0]:.4f}')
+    # print(f'고장 발생 확률: {probability[0]:.4f}')
+    print(f'고장 발생 확률 (Recall 기준): {probability[0]:.4f}')
     print(f'예측된 클래스 (0: 고장 없음, 1: 고장 발생): {y_pred[0]}')
 
     return y_pred[0], probability[0]  # 예측 결과, 고장 발생 확률 반환

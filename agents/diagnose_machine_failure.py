@@ -122,7 +122,8 @@ def generate_diagnosis_message(abnormal_sensors: List[Dict[str, Any]]) -> str:
 def format_final_message(diagnosis: str, abnormal_sensors: List[Dict[str, Any]], fail_probability: int) -> str:
     """최종 메시지 포맷팅 - fail_probability 매개변수 추가"""
     message = "⚠️ 기계 고장 예측 알림\n\n"
-    message += f"고장 가능성이 있으며, 확률이 {fail_probability}%로 판단되었습니다.\n\n"
+    # message += f"고장 가능성이 있으며, 확률이 {fail_probability}%로 판단되었습니다.\n\n"
+    message += f"고장 가능성이 있으며, 재현율(recall) 기준 확률이 {fail_probability}%로 판단되었습니다.\n\n"  # 변경된 코드
     message += "진단 요약:\n"
     message += diagnosis
     

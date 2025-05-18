@@ -10,6 +10,7 @@ from sklearn.metrics import accuracy_score, classification_report
 import joblib
 import os
 from config.config import DATA_SOURCE_PATH
+from sklearn.metrics import recall_score  # 수정 recall
 
 # 경로 설정
 MODEL_PATH = "model/result/saved_model.joblib"
@@ -62,11 +63,17 @@ def evaluate(dataset) -> float:
 
     # 모델 예측 및 평가
     y_pred = model.predict(X_test_scaled)
-    acc = accuracy_score(y_test, y_pred)
-    print(f"현재 모델 정확도: {acc:.4f}")
-    print(classification_report(y_test, y_pred))
+    # acc = accuracy_score(y_test, y_pred)  # 이전 acc
+    # print(f"현재 모델 정확도: {acc:.4f}")  # 이전 acc
 
-    return acc
+    recall = recall_score(y_test, y_pred)  # 수정 recall
+    print(f"현재 모델 재현율(recall): {recall:.4f}")  # 수정 recall
+
+    print(classification_report(y_test, y_pred))
+    
+    # return acc
+    return recall # acc
+
 
 # 모델 재학습
 def retrain(dataset) -> float:
@@ -133,11 +140,15 @@ def retrain(dataset) -> float:
 
     # 모델 예측 및 평가
     y_pred = model.predict(X_test_scaled)
-    acc = accuracy_score(y_test, y_pred)
-    print(f"현재 모델 정확도: {acc:.4f}")
+    # acc = accuracy_score(y_test, y_pred)
+    # print(f"현재 모델 정확도: {acc:.4f}")
+    recall = recall_score(y_test, y_pred)  
+    print(f"현재 모델 재현율(recall): {recall:.4f}") 
+    
     print(classification_report(y_test, y_pred))
 
-    return acc
+    # return acc
+    return recall 
 
 # 데이터 로드
 df = pd.read_csv(DATA_SOURCE_PATH)
