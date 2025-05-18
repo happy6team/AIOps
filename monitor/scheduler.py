@@ -21,23 +21,10 @@ PERFORMANCE_THRESHOLD = 0.9 # 최적화해서 알아내야 함
 
 logger.info(f"데이터 경로 확인: {DATA_SOURCE_PATH}")
 
-# 새로운 데이터 5초마다 불러와서 학습하기
+# 새로운 데이터 예측하기
 async def predict_failures(latest_data):
     try:
-        # 1. 모델로 예측 실행
         prediction_result, fail_probability = predict_and_result(latest_data) # ex) 예측 결과 확률
-        
-        # @ 여기 retrun값이 어떻게 오냐에 따라 값 다르게 넣어주기
-        # 예측 결과 저장
-        result = await save_row(latest_data, prediction_result, fail_probability)
-        print(result)
-        
-        # 2. 예측 결과 처리 (임계값 이상이면 경고 발생)
-        if prediction_result == 1:  # 임계값 설정 필요
-            logger.warning(f"고장 가능성 감지! 고장 확률: {fail_probability}")
-            # 여기에 알림 전송 로직 추가 (이메일, SMS, 웹훅 등)
-            send_slack_message("failure", result)
-        logger.info(f"예측 완료: {prediction_result}")
         return prediction_result, fail_probability
     except Exception as e:
         logger.error(f"예측 중 오류 발생: {str(e)}")
@@ -73,7 +60,6 @@ async def evaluate_and_retrain():
                 "threshold": PERFORMANCE_THRESHOLD
             }
             send_slack_message("retraining_start", slack_before_data)
-            print("✅슬랙 메시지 전송 완료")
             logger.warning(f"모델 성능 저하 감지. 재학습 시작...")
 
             # DB 세션 열기 및 저장
@@ -110,7 +96,7 @@ async def periodic_task(task_func, interval_seconds):
         await asyncio.sleep(interval_seconds)
 
 # 데이터 저장 함수
-async def save_row(row,prediction_result, fail_probability):
+async def save_row(row, prediction_result, fail_probability):
     # row → dict
     row_dict = row.to_dict()
 
@@ -132,7 +118,6 @@ async def save_row(row,prediction_result, fail_probability):
     # DB 세션 열기 및 저장
     async with AsyncSessionLocal() as session:
         await create_sensor_data(session, sensor_data)
-        print("새로운 데이터 저장 완료")
     return row_dict
 
 async def predict_each_row_periodically(database: pd.DataFrame, interval_seconds: int):
@@ -140,6 +125,18 @@ async def predict_each_row_periodically(database: pd.DataFrame, interval_seconds
         while True:
             for index, row in database.iterrows():
                 prediction_result, fail_probability = await predict_failures(row)  # 각 행 예측
+
+                # 예측 결과 저장
+                result = await save_row(row, prediction_result, fail_probability)
+
+                # 임계값 이상이면 경고 발생
+                if prediction_result == 1:  # 임계값 설정 필요
+                    logger.warning(f"고장 가능성 감지! 고장 확률: {fail_probability}")
+                    # 여기에 알림 전송 로직 추가 (이메일, SMS, 웹훅 등)
+                    logger.info("✅알림 발송")
+                    send_slack_message("failure", result)
+                logger.info(f"예측 완료: {prediction_result}")
+
                 await asyncio.sleep(interval_seconds)  # 5초 대기 후 다음 행
     except Exception as e:
         logging.error(f"예측 루프 중 오류 발생: {e}")

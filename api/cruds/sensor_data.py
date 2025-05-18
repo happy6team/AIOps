@@ -1,5 +1,5 @@
 from api.models.sensor_data import SensorData
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
 # from sqlalchemy import select
@@ -33,6 +33,6 @@ async def get_sensor_data_by_date_range(db: AsyncSession, start_date: datetime, 
 
 # 가장 최근 데이터 하나 가져옴
 async def get_latest_sensor_data(db: AsyncSession):
-    stmt = select(SensorData).order_by(SensorData.collection_time.desc()).limit(1)
+    stmt = select(SensorData).order_by(text("id DESC")).limit(1)
     result = await db.execute(stmt)
     return result.scalars().first()
